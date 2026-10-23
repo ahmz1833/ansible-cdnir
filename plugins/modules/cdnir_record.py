@@ -121,7 +121,14 @@ record:
 '''
 
 # Forward execution to cdnir_dns
-from .cdnir_dns import run_module, main
+import os
+import sys
+
+try:
+    from ansible_collections.ahmz1833.cdnir.plugins.modules.cdnir_dns import run_module, main
+except ImportError:
+    sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+    from cdnir_dns import run_module, main
 
 if __name__ == '__main__':
     main()
