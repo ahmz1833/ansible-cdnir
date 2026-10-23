@@ -401,6 +401,11 @@ def run_module():
             # Solo mode: delete any other records with this name & type
             if solo and len(matching_by_name) > 1:
                 conflicting = [r for r in matching_by_name if r['id'] != rec['id']]
+                if not result['diff']:
+                    result['diff'] = {
+                        'before': {'records': matching_by_name},
+                        'after': {'records': [rec]}
+                    }
                 for extra in conflicting:
                     if not module.check_mode:
                         try:
@@ -485,8 +490,8 @@ def run_module():
 
         if targets_to_delete:
             result['diff'] = {
-                'before': targets_to_delete,
-                'after': []
+                'before': {'records': targets_to_delete},
+                'after': {'records': []}
             }
             if not module.check_mode:
                 for rec in targets_to_delete:
