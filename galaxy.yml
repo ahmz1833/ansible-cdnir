@@ -1,0 +1,35 @@
+---
+namespace: ahmz1833
+name: cdnir
+version: 1.0.0
+readme: README.md
+authors:
+  - AH MZ <ahmz.ut@gmail.com>
+
+description: Ansible module and collection for managing CDN.ir (Asiatech Cloud) DNS zones and records.
+
+license:
+  - MIT
+
+tags:
+  - cdnir
+  - asiatech
+  - dns
+  - cloud
+  - cloudflare
+
+repository: https://github.com/ahmz1833/ansible-cdnir
+documentation: https://github.com/ahmz1833/ansible-cdnir/blob/main/README.md
+homepage: https://github.com/ahmz1833/ansible-cdnir
+issues: https://github.com/ahmz1833/ansible-cdnir/issues
+
+build_ignore:
+  - .git
+  - .gitignore
+  - .vscode
+  - "*.tar.gz"
+  - __pycache__
+  - .pytest_cache
+  - .ansible
+  - .env*
+  - test-*.txt

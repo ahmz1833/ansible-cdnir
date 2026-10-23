@@ -1,0 +1,29 @@
+# Environment variables & secrets
+.env
+*.env
+test-*.txt
+test_*.txt
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+.ansible/
+*.retry
+
+# Ansible Galaxy artifact
+dist/
+build/
+*.tar.gz
+
+# IDE & OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store

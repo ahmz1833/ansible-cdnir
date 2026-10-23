@@ -1,0 +1,33 @@
+---
+- name: Declarative CDN.ir DNS Configuration
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    domain_zone: "example.ir"
+    cdnir_token: "{{ lookup('ansible.builtin.env', 'CDNIR_API_TOKEN') }}"
+
+  tasks:
+    - name: Ensure DNS zone exists
+      cdnir_zone:
+        name: "{{ domain_zone }}"
+        state: present
+        api_token: "{{ cdnir_token }}"
+
+    - name: Configure DNS records
+      cdnir_dns:
+        zone: "{{ domain_zone }}"
+        record: "{{ item.record }}"
+        type: "{{ item.type }}"
+        value: "{{ item.value }}"
+        ttl: "{{ item.ttl | default(3600) }}"
+        solo: "{{ item.solo | default(false) }}"
+        state: present
+        api_token: "{{ cdnir_token }}"
+      loop:
+        - { record: "@", type: "A", value: "192.0.2.1" }
+        - { record: "www", type: "CNAME", value: "{{ domain_zone }}.", solo: true }
+        - { record: "mail", type: "A", value: "192.0.2.2" }
+        - { record: "@", type: "MX", value: "10 mail.{{ domain_zone }}." }
+        - { record: "@", type: "TXT", value: "v=spf1 mx -all" }

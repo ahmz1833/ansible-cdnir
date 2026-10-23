@@ -1,0 +1,115 @@
+---
+- name: Test CDN.ir Ansible Modules Live
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    domain_zone: "{{ lookup('ansible.builtin.env', 'TEST_DOMAIN') | default('example.ir', true) }}"
+    cdnir_token: "{{ lookup('ansible.builtin.env', 'TOKEN') | default(lookup('ansible.builtin.env', 'CDNIR_API_TOKEN'), true) }}"
+
+  tasks:
+    - name: 1. Verify zone exists (idempotency check)
+      cdnir_zone:
+        name: "{{ domain_zone }}"
+        state: present
+        api_token: "{{ cdnir_token }}"
+      register: zone_out
+
+    - name: Assert zone task succeeded
+      ansible.builtin.assert:
+        that:
+          - zone_out.zone.name == domain_zone
+          - not zone_out.changed
+
+    - name: 2. Create test A record
+      cdnir_dns:
+        zone: "{{ domain_zone }}"
+        record: "ansible-test"
+        type: A
+        value: "192.0.2.123"
+        ttl: 300
+        state: present
+        api_token: "{{ cdnir_token }}"
+      register: rec_create
+
+    - name: Assert record was created
+      ansible.builtin.assert:
+        that:
+          - rec_create.changed
+
+    - name: 3. Create test A record again (idempotency test)
+      cdnir_dns:
+        zone: "{{ domain_zone }}"
+        record: "ansible-test"
+        type: A
+        value: "192.0.2.123"
+        ttl: 300
+        state: present
+        api_token: "{{ cdnir_token }}"
+      register: rec_idempotent
+
+    - name: Assert record was NOT changed (idempotent)
+      ansible.builtin.assert:
+        that:
+          - not rec_idempotent.changed
+
+    - name: 4. Update record TTL
+      cdnir_dns:
+        zone: "{{ domain_zone }}"
+        record: "ansible-test"
+        type: A
+        value: "192.0.2.123"
+        ttl: 600
+        state: present
+        api_token: "{{ cdnir_token }}"
+      register: rec_update
+
+    - name: Assert record was updated
+      ansible.builtin.assert:
+        that:
+          - rec_update.changed
+
+    - name: 5. Query record info
+      cdnir_record_info:
+        zone: "{{ domain_zone }}"
+        record: "ansible-test"
+        type: A
+        api_token: "{{ cdnir_token }}"
+      register: info_out
+
+    - name: Assert record was found by query
+      ansible.builtin.assert:
+        that:
+          - info_out.records | length == 1
+          - info_out.records[0].content == "192.0.2.123"
+
+    - name: 6. Delete test record (state=absent)
+      cdnir_dns:
+        zone: "{{ domain_zone }}"
+        record: "ansible-test"
+        type: A
+        value: "192.0.2.123"
+        state: absent
+        api_token: "{{ cdnir_token }}"
+      register: rec_delete
+
+    - name: Assert record was deleted
+      ansible.builtin.assert:
+        that:
+          - rec_delete.changed
+
+    - name: 7. Delete test record again (idempotency test)
+      cdnir_dns:
+        zone: "{{ domain_zone }}"
+        record: "ansible-test"
+        type: A
+        value: "192.0.2.123"
+        state: absent
+        api_token: "{{ cdnir_token }}"
+      register: rec_delete_again
+
+    - name: Assert delete was idempotent
+      ansible.builtin.assert:
+        that:
+          - not rec_delete_again.changed
